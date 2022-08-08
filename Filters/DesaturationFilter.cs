@@ -1,4 +1,5 @@
 #region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,23 +24,25 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    public class DesaturationFilter : IFilter {
+namespace Kaliko.ImageLibrary.Filters;
 
-        public void Run(KalikoImage image) {
-            DesaturateImage(image);
-        }
+public class DesaturationFilter : IFilter
+{
+    public void Run(KalikoImage image)
+    {
+        DesaturateImage(image);
+    }
 
-        private static void DesaturateImage(KalikoImage image) {
-            byte[] b = image.ByteArray;
+    private static void DesaturateImage(KalikoImage image)
+    {
+        var b = image.ByteArray;
 
-            for(int i = 0, l = b.Length;i < l;i += 4) {
-                b[i] = b[i + 1] = b[i + 2] = (byte)(.299 * b[i + 2] + .587 * b[i + 1] + .114 * b[i]);
-            }
+        for (int i = 0, l = b.Length; i < l; i += 4)
+            b[i] = b[i + 1] = b[i + 2] = (byte)(.299 * b[i + 2] + .587 * b[i + 1] + .114 * b[i]);
 
-            image.ByteArray = b;
-        }
+        image.ByteArray = b;
     }
 }

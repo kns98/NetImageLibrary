@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,55 +24,61 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    using System;
+namespace Kaliko.ImageLibrary.Filters;
 
-    /// <summary>Simple filter for adjusting brightness in images.</summary>
-    public class BrightnessFilter : IFilter {
-        private readonly double _brightness;
+/// <summary>Simple filter for adjusting brightness in images.</summary>
+public class BrightnessFilter : IFilter
+{
+    private readonly double _brightness;
 
-        /// <param name="changeInBrightness">The amount of change to be applied to the brightness. Entered as either a positive - to make it brighter - or negative - to make it darker - value (zero
-        /// means no change).</param>
-        public BrightnessFilter(int changeInBrightness) {
-            _brightness = 1 + ((double)changeInBrightness / 100);
+    /// <param name="changeInBrightness">
+    ///     The amount of change to be applied to the brightness. Entered as either a positive - to make it brighter - or
+    ///     negative - to make it darker - value (zero
+    ///     means no change).
+    /// </param>
+    public BrightnessFilter(int changeInBrightness)
+    {
+        _brightness = 1 + (double)changeInBrightness / 100;
+    }
+
+    /// <summary>Execute the filter.</summary>
+    public virtual void Run(KalikoImage image)
+    {
+        ChangeBrightness(image);
+    }
+
+    protected byte[] BuildLookupTable()
+    {
+        var lookupTable = new byte[256];
+
+        for (var i = 0; i < 256; i++)
+        {
+            var val = (int)Math.Round(i * _brightness);
+            if (val < 0)
+                val = 0;
+            else if (val > 255) val = 255;
+            lookupTable[i] = (byte)val;
         }
 
-        /// <summary>Execute the filter.</summary>
-        public virtual void Run(KalikoImage image) {
-            ChangeBrightness(image);
+        return lookupTable;
+    }
+
+    private void ChangeBrightness(KalikoImage image)
+    {
+        var lookupTable = BuildLookupTable();
+
+        var byteArray = image.ByteArray;
+
+        for (int i = 0, l = byteArray.Length; i < l; i += 4)
+        {
+            byteArray[i] = lookupTable[byteArray[i]]; // b
+            byteArray[i + 1] = lookupTable[byteArray[i + 1]]; // g
+            byteArray[i + 2] = lookupTable[byteArray[i + 2]]; // r
         }
 
-        protected byte[] BuildLookupTable() {
-            var lookupTable = new byte[256];
-
-            for(var i = 0;i < 256;i++) {
-                var val = (int)Math.Round(i * _brightness);
-                if(val < 0) {
-                    val = 0;
-                }
-                else if(val > 255) {
-                    val = 255;
-                }
-                lookupTable[i] = (byte)val;
-            }
-
-            return lookupTable;
-        }
-
-        private void ChangeBrightness(KalikoImage image) {
-            var lookupTable = BuildLookupTable();
-
-            var byteArray = image.ByteArray;
-
-            for(int i = 0, l = byteArray.Length;i < l;i += 4) {
-                byteArray[i] = lookupTable[byteArray[i]];          // b
-                byteArray[i + 1] = lookupTable[byteArray[i + 1]];  // g
-                byteArray[i + 2] = lookupTable[byteArray[i + 2]];  // r
-            }
-
-            image.ByteArray = byteArray;
-        }
+        image.ByteArray = byteArray;
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region License information
+
 /*
  * Kaliko Image Library
  * 
@@ -23,53 +24,54 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Scaling {
-    using System.Drawing;
+using System.Drawing;
+
+namespace Kaliko.ImageLibrary.Scaling;
+
+/// <summary>
+/// </summary>
+/// <seealso cref="CropScaling"></seealso>
+/// <seealso cref="PadScaling"></seealso>
+public class FitScaling : ScalingBase
+{
+    private readonly Size _targetSize;
+
 
     /// <summary>
-    /// 
     /// </summary>
-    /// <seealso cref="CropScaling"></seealso>
-    /// <seealso cref="PadScaling"></seealso>
-    public class FitScaling : ScalingBase {
-        private Size _targetSize;
-
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="targetWidth"></param>
-        /// <param name="targetHeight"></param>
-        public FitScaling(int targetWidth, int targetHeight) : base(targetWidth, targetHeight) {
-            _targetSize = new Size(targetWidth, targetHeight);
-        }
+    /// <param name="targetWidth"></param>
+    /// <param name="targetHeight"></param>
+    public FitScaling(int targetWidth, int targetHeight) : base(targetWidth, targetHeight)
+    {
+        _targetSize = new Size(targetWidth, targetHeight);
+    }
 
 
-        internal override Size CalculateNewImageSize(Size originalSize) {
-            double targetRatio = GetRatio(_targetSize);
-            double originalRatio = GetRatio(originalSize);
+    internal override Size CalculateNewImageSize(Size originalSize)
+    {
+        var targetRatio = GetRatio(_targetSize);
+        var originalRatio = GetRatio(originalSize);
 
-            var size = new Size(_targetSize.Width, _targetSize.Height);
+        var size = new Size(_targetSize.Width, _targetSize.Height);
 
-            if (originalRatio < targetRatio) {
-                size.Width = (originalSize.Width * _targetSize.Height) / originalSize.Height;
-            }
-            else {
-                size.Height = (originalSize.Height * _targetSize.Width) / originalSize.Width;
-            }
+        if (originalRatio < targetRatio)
+            size.Width = originalSize.Width * _targetSize.Height / originalSize.Height;
+        else
+            size.Height = originalSize.Height * _targetSize.Width / originalSize.Width;
 
-            return size;
-        }
+        return size;
+    }
 
 
-        internal override KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize) {
-            var resizedImage = new KalikoImage(calculatedSize);
-            
-            KalikoImage.DrawScaledImage(resizedImage, sourceImage, 0, 0, calculatedSize.Width, calculatedSize.Height);
-            
-            return resizedImage;
-        }
+    internal override KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize)
+    {
+        var resizedImage = new KalikoImage(calculatedSize);
+
+        KalikoImage.DrawScaledImage(resizedImage, sourceImage, 0, 0, calculatedSize.Width, calculatedSize.Height);
+
+        return resizedImage;
     }
 }

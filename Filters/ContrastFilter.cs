@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,70 +24,70 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    using System;
+namespace Kaliko.ImageLibrary.Filters;
+
+/// <summary>
+/// </summary>
+public class ContrastFilter : IFilter
+{
+    private readonly double _contrast;
 
     /// <summary>
-    /// 
     /// </summary>
-    public class ContrastFilter : IFilter {
-        private readonly double _contrast;
+    /// <param name="changeInContrast"></param>
+    public ContrastFilter(int changeInContrast)
+    {
+        _contrast = 1 + (double)changeInContrast / 100;
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="changeInContrast"></param>
-        public ContrastFilter(int changeInContrast) {
-            _contrast = 1 + ((double)changeInContrast / 100);
+    /// <summary>
+    /// </summary>
+    /// <param name="image"></param>
+    public virtual void Run(KalikoImage image)
+    {
+        ChangeContrast(image);
+    }
+
+    private void ChangeContrast(KalikoImage image)
+    {
+        var lookupTable = BuildLookupTable();
+
+        var byteArray = image.ByteArray;
+
+        for (int i = 0, l = byteArray.Length; i < l; i += 4)
+        {
+            byteArray[i] = lookupTable[byteArray[i]]; // b
+            byteArray[i + 1] = lookupTable[byteArray[i + 1]]; // g
+            byteArray[i + 2] = lookupTable[byteArray[i + 2]]; // r
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        public virtual void Run(KalikoImage image) {
-            ChangeContrast(image);
+        image.ByteArray = byteArray;
+    }
+
+    /// <summary>
+    /// </summary>
+    /// <returns></returns>
+    protected byte[] BuildLookupTable()
+    {
+        var lookupTable = new byte[256];
+
+        // Precalculate all changes
+        for (var i = 0; i < 256; i++)
+        {
+            var value = i / 255.0;
+            value -= 0.5;
+            value *= _contrast;
+            value += 0.5;
+            value = (int)Math.Round(value * 255);
+            if (value < 0)
+                value = 0;
+            else if (value > 255) value = 255;
+            lookupTable[i] = (byte)value;
         }
 
-        private void ChangeContrast(KalikoImage image) {
-            var lookupTable = BuildLookupTable();
-
-            var byteArray = image.ByteArray;
-
-            for(int i = 0, l = byteArray.Length;i < l;i += 4) {
-                byteArray[i] = lookupTable[byteArray[i]];          // b
-                byteArray[i + 1] = lookupTable[byteArray[i + 1]];  // g
-                byteArray[i + 2] = lookupTable[byteArray[i + 2]];  // r
-            }
-
-            image.ByteArray = byteArray;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected byte[] BuildLookupTable() {
-            var lookupTable = new byte[256];
-
-            // Precalculate all changes
-            for (var i = 0; i < 256; i++) {
-                var value = i/255.0;
-                value -= 0.5;
-                value *= _contrast;
-                value += 0.5;
-                value = (int)Math.Round(value*255);
-                if (value < 0) {
-                    value = 0;
-                }
-                else if (value > 255) {
-                    value = 255;
-                }
-                lookupTable[i] = (byte)value;
-            }
-            return lookupTable;
-        }
+        return lookupTable;
     }
 }

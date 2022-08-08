@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,39 +24,43 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.FastFilters {
-    using System.Drawing;
-    using System.Threading.Tasks;
-    using Kaliko.ImageLibrary;
-    using Kaliko.ImageLibrary.Filters;
+using System.Drawing;
+using Kaliko.ImageLibrary.Filters;
 
-    public class FastDesaturationFilter : IFilter {
+namespace Kaliko.ImageLibrary.FastFilters;
 
-        public void Run(KalikoImage image) {
-            DesaturateImage(image);
-        }
+public class FastDesaturationFilter : IFilter
+{
+    public void Run(KalikoImage image)
+    {
+        DesaturateImage(image);
+    }
 
-        private static void DesaturateImage(KalikoImage image) {
-            unsafe {
-                var bitmapData = image.LockBits();
+    private static void DesaturateImage(KalikoImage image)
+    {
+        unsafe
+        {
+            var bitmapData = image.LockBits();
 
-                var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat)/8;
-                var height = bitmapData.Height;
-                var widthInBytes = bitmapData.Width*bytesPerPixel;
-                var startOffset = (byte*)bitmapData.Scan0;
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+            var height = bitmapData.Height;
+            var widthInBytes = bitmapData.Width * bytesPerPixel;
+            var startOffset = (byte*)bitmapData.Scan0;
 
-                Parallel.For(0, height, y => {
-                    var currentLine = startOffset + (y*bitmapData.Stride);
-                    for (var x = 0; x < widthInBytes; x = x + bytesPerPixel) {
-                        var gray = (byte)(.299*currentLine[x + 2] + .587*currentLine[x + 1] + .114*currentLine[x]);
-                        currentLine[x] = currentLine[x + 1] = currentLine[x + 2] = gray;
-                    }
-                });
+            Parallel.For(0, height, y =>
+            {
+                var currentLine = startOffset + y * bitmapData.Stride;
+                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                {
+                    var gray = (byte)(.299 * currentLine[x + 2] + .587 * currentLine[x + 1] + .114 * currentLine[x]);
+                    currentLine[x] = currentLine[x + 1] = currentLine[x + 2] = gray;
+                }
+            });
 
-                image.UnlockBits(bitmapData);
-            }
+            image.UnlockBits(bitmapData);
         }
     }
 }

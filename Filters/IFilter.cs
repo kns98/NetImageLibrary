@@ -1,4 +1,5 @@
 #region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,11 +24,12 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    public interface IFilter {
+namespace Kaliko.ImageLibrary.Filters;
 
-        void Run(KalikoImage image);
-    }
+public interface IFilter
+{
+    void Run(KalikoImage image);
 }

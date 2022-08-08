@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Ported to .NET for use in Kaliko.ImageLibrary by Fredrik Schultz 2014
  *
@@ -17,82 +18,86 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
 */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    using System;
-    using System.Drawing;
-    using ColorSpace;
+using System.Drawing;
+using Kaliko.ImageLibrary.ColorSpace;
 
-    public class ChromaKeyFilter : IFilter {
-        public float ToleranceHue { get; set; }
+namespace Kaliko.ImageLibrary.Filters;
 
-        public float ToleranceSaturnation { get; set; }
+public class ChromaKeyFilter : IFilter
+{
+    public ChromaKeyFilter()
+    {
+        KeyColor = Color.FromArgb(0, 255, 0);
+        ToleranceHue = 10;
+        ToleranceSaturnation = 0.7f;
+        ToleranceBrightness = 0.5f;
+    }
 
-        public float ToleranceBrightness { get; set; }
+    public ChromaKeyFilter(Color keyColor)
+    {
+        KeyColor = keyColor;
+        ToleranceHue = 10;
+        ToleranceSaturnation = 0.7f;
+        ToleranceBrightness = 0.5f;
+    }
 
-        public Color KeyColor { get; set; }
+    public ChromaKeyFilter(Color keyColor, float toleranceHue, float toleranceSaturnation, float toleranceBrightness)
+    {
+        KeyColor = keyColor;
+        ToleranceHue = toleranceHue;
+        ToleranceSaturnation = toleranceSaturnation;
+        ToleranceBrightness = toleranceBrightness;
+    }
 
-        public ChromaKeyFilter() {
-            KeyColor = Color.FromArgb(0, 255, 0);
-            ToleranceHue = 10;
-            ToleranceSaturnation = 0.7f;
-            ToleranceBrightness = 0.5f;
+    public float ToleranceHue { get; set; }
+
+    public float ToleranceSaturnation { get; set; }
+
+    public float ToleranceBrightness { get; set; }
+
+    public Color KeyColor { get; set; }
+
+    public void Run(KalikoImage image)
+    {
+        ValidateParameters();
+
+        ApplyChromaKey(image);
+    }
+
+    public void ApplyChromaKey(KalikoImage image)
+    {
+        var pixels = image.IntArray;
+        var keyHsb = ColorSpaceHelper.RGBtoHSB(KeyColor);
+
+        for (var i = 0; i < pixels.Length; i++)
+        {
+            var rgb = pixels[i];
+
+            var red = (rgb >> 16) & 0xff;
+            var green = (rgb >> 8) & 0xff;
+            var blue = rgb & 0xff;
+            var hsb = ColorSpaceHelper.RGBtoHSB(red, green, blue);
+
+            if (Math.Abs(hsb.Hue - keyHsb.Hue) < ToleranceHue &&
+                Math.Abs(hsb.Saturation - keyHsb.Saturation) < ToleranceSaturnation &&
+                Math.Abs(hsb.Brightness - keyHsb.Brightness) < ToleranceBrightness)
+                pixels[i] = rgb & 0xffffff;
+            else
+                pixels[i] = rgb;
         }
 
-        public ChromaKeyFilter(Color keyColor) {
-            KeyColor = keyColor;
-            ToleranceHue = 10;
-            ToleranceSaturnation = 0.7f;
-            ToleranceBrightness = 0.5f;
-        }
+        image.IntArray = pixels;
+    }
 
-        public ChromaKeyFilter(Color keyColor, float toleranceHue, float toleranceSaturnation, float toleranceBrightness) {
-            KeyColor = keyColor;
-            ToleranceHue = toleranceHue;
-            ToleranceSaturnation = toleranceSaturnation;
-            ToleranceBrightness = toleranceBrightness;
-        }
-
-        public void Run(KalikoImage image) {
-            ValidateParameters();
-
-            ApplyChromaKey(image);
-        }
-
-        public void ApplyChromaKey(KalikoImage image) {
-            var pixels = image.IntArray;
-            var keyHsb = ColorSpaceHelper.RGBtoHSB(KeyColor);
-
-            for (int i = 0; i < pixels.Length; i++) {
-                int rgb = pixels[i];
-
-                int red = (rgb >> 16) & 0xff;
-                int green = (rgb >> 8) & 0xff;
-                int blue = rgb & 0xff;
-                HSB hsb = ColorSpaceHelper.RGBtoHSB(red, green, blue);
-
-                if (Math.Abs(hsb.Hue - keyHsb.Hue) < ToleranceHue && Math.Abs(hsb.Saturation - keyHsb.Saturation) < ToleranceSaturnation && Math.Abs(hsb.Brightness - keyHsb.Brightness) < ToleranceBrightness) {
-                    pixels[i] = rgb & 0xffffff;
-                }
-                else {
-                    pixels[i] = rgb;
-                }
-            }
-
-            image.IntArray = pixels;
-        }
-
-        private void ValidateParameters() {
-            if (ToleranceHue < 0 || ToleranceHue > 360) {
-                throw new ArgumentException("ToleranceHue out of range (0..360)");
-            }
-            if (ToleranceSaturnation < 0 || ToleranceSaturnation > 1) {
-                throw new ArgumentException("ToleranceSaturnation out of range (0..1)");
-            }
-            if (ToleranceBrightness < 0 || ToleranceBrightness > 1) {
-                throw new ArgumentException("ToleranceBrightness out of range (0..1)");
-            }
-        }
+    private void ValidateParameters()
+    {
+        if (ToleranceHue < 0 || ToleranceHue > 360) throw new ArgumentException("ToleranceHue out of range (0..360)");
+        if (ToleranceSaturnation < 0 || ToleranceSaturnation > 1)
+            throw new ArgumentException("ToleranceSaturnation out of range (0..1)");
+        if (ToleranceBrightness < 0 || ToleranceBrightness > 1)
+            throw new ArgumentException("ToleranceBrightness out of range (0..1)");
     }
 }

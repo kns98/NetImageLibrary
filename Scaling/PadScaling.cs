@@ -1,4 +1,5 @@
 #region License information
+
 /*
  * Kaliko Image Library
  * 
@@ -23,61 +24,63 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Scaling {
-    using System.Drawing;
+using System.Drawing;
+
+namespace Kaliko.ImageLibrary.Scaling;
+
+/// <summary>
+/// </summary>
+/// <seealso cref="CropScaling"></seealso>
+/// <seealso cref="FitScaling"></seealso>
+public class PadScaling : ScalingBase
+{
+    private Color _backgroundColor;
+    private readonly Size _targetSize;
 
     /// <summary>
-    /// 
     /// </summary>
-    /// <seealso cref="CropScaling"></seealso>
-    /// <seealso cref="FitScaling"></seealso>
-    public class PadScaling : ScalingBase {
-        private Color _backgroundColor;
-        private Size _targetSize;
+    /// <param name="targetWidth"></param>
+    /// <param name="targetHeight"></param>
+    public PadScaling(int targetWidth, int targetHeight) : base(targetWidth, targetHeight)
+    {
+        _targetSize = new Size(targetWidth, targetHeight);
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="targetWidth"></param>
-        /// <param name="targetHeight"></param>
-        public PadScaling(int targetWidth, int targetHeight) : base(targetWidth, targetHeight) {
-            _targetSize = new Size(targetWidth, targetHeight);
-        }
+    /// <summary>
+    /// </summary>
+    /// <param name="targetWidth"></param>
+    /// <param name="targetHeight"></param>
+    /// <param name="backgroundColor"></param>
+    public PadScaling(int targetWidth, int targetHeight, Color backgroundColor) : base(targetWidth, targetHeight)
+    {
+        _backgroundColor = backgroundColor;
+        _targetSize = new Size(targetWidth, targetHeight);
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="targetWidth"></param>
-        /// <param name="targetHeight"></param>
-        /// <param name="backgroundColor"></param>
-        public PadScaling(int targetWidth, int targetHeight, Color backgroundColor) : base(targetWidth, targetHeight) {
-            _backgroundColor = backgroundColor;
-            _targetSize = new Size(targetWidth, targetHeight);
-        }
+    internal override Size CalculateNewImageSize(Size originalSize)
+    {
+        // Thanks to Cosmin for the following fix!
+        var verticalRatio = originalSize.Height / (float)_targetSize.Height;
+        var horizontalRatio = originalSize.Width / (float)_targetSize.Width;
+        var newRatio = verticalRatio > horizontalRatio ? verticalRatio : horizontalRatio;
+        var imageHeight = (int)(originalSize.Height / newRatio);
+        var imageWidth = (int)(originalSize.Width / newRatio);
 
-        internal override Size CalculateNewImageSize(Size originalSize) {
-            // Thanks to Cosmin for the following fix!
-            var verticalRatio = originalSize.Height / (float)_targetSize.Height;
-            var horizontalRatio = originalSize.Width / (float)_targetSize.Width;
-            var newRatio = verticalRatio > horizontalRatio ? verticalRatio : horizontalRatio;
-            var imageHeight = (int)(originalSize.Height / newRatio);
-            var imageWidth = (int)(originalSize.Width / newRatio);
+        return new Size(imageWidth, imageHeight);
+    }
 
-            return new Size(imageWidth, imageHeight);
-        }
+    internal override KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize)
+    {
+        if (_backgroundColor.IsEmpty) _backgroundColor = sourceImage.BackgroundColor;
 
-        internal override KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize) {
-            if(_backgroundColor.IsEmpty) {
-                _backgroundColor = sourceImage.BackgroundColor;
-            }
+        var resizedImage = new KalikoImage(_targetSize, _backgroundColor);
 
-            var resizedImage = new KalikoImage(_targetSize, _backgroundColor);
+        KalikoImage.DrawScaledImage(resizedImage, sourceImage, (_targetSize.Width - calculatedSize.Width) / 2,
+            (_targetSize.Height - calculatedSize.Height) / 2, calculatedSize.Width, calculatedSize.Height);
 
-            KalikoImage.DrawScaledImage(resizedImage, sourceImage, (_targetSize.Width - calculatedSize.Width) / 2, (_targetSize.Height - calculatedSize.Height) / 2, calculatedSize.Width, calculatedSize.Height);
-
-            return resizedImage;
-        }
+        return resizedImage;
     }
 }

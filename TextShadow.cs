@@ -1,4 +1,5 @@
 #region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,20 +24,23 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary {
-    using System.Drawing;
+using System.Drawing;
 
-    public class TextShadow {
-        public float OffsetX { get; set; }
-        public float OffsetY { get; set; }
-        public Color Color { get; set; }
+namespace Kaliko.ImageLibrary;
 
-        public TextShadow(Color color, float offsetY, float offsetX) {
-            Color = color;
-            OffsetY = offsetY;
-            OffsetX = offsetX;
-        }
+public class TextShadow
+{
+    public TextShadow(Color color, float offsetY, float offsetX)
+    {
+        Color = color;
+        OffsetY = offsetY;
+        OffsetX = offsetX;
     }
+
+    public float OffsetX { get; set; }
+    public float OffsetY { get; set; }
+    public Color Color { get; set; }
 }

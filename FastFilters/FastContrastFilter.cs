@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,48 +24,54 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.FastFilters {
-    using System.Drawing;
-    using System.Threading.Tasks;
-    using Filters;
+using System.Drawing;
+using Kaliko.ImageLibrary.Filters;
 
-    public class FastContrastFilter : ContrastFilter {
+namespace Kaliko.ImageLibrary.FastFilters;
 
-        public FastContrastFilter(int changeInContrast) : base(changeInContrast) {
-        }
+public class FastContrastFilter : ContrastFilter
+{
+    public FastContrastFilter(int changeInContrast) : base(changeInContrast)
+    {
+    }
 
-        public override void Run(KalikoImage image) {
-            ChangeContrast(image);
-        }
+    public override void Run(KalikoImage image)
+    {
+        ChangeContrast(image);
+    }
 
-        private void ChangeContrast(KalikoImage image) {
-            var lookupTable = BuildLookupTable();
+    private void ChangeContrast(KalikoImage image)
+    {
+        var lookupTable = BuildLookupTable();
 
-            unsafe {
-                var bitmapData = image.LockBits();
+        unsafe
+        {
+            var bitmapData = image.LockBits();
 
-                var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat)/8;
-                var height = bitmapData.Height;
-                var widthInBytes = bitmapData.Width*bytesPerPixel;
-                var startOffset = (byte*)bitmapData.Scan0;
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+            var height = bitmapData.Height;
+            var widthInBytes = bitmapData.Width * bytesPerPixel;
+            var startOffset = (byte*)bitmapData.Scan0;
 
-                Parallel.For(0, height, y => {
-                    var currentLine = startOffset + (y*bitmapData.Stride);
-                    for (var x = 0; x < widthInBytes; x = x + bytesPerPixel) {
-                        var red = currentLine[x];
-                        var green = currentLine[x + 1];
-                        var blue = currentLine[x + 2];
+            Parallel.For(0, height, y =>
+            {
+                var currentLine = startOffset + y * bitmapData.Stride;
+                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                {
+                    var red = currentLine[x];
+                    var green = currentLine[x + 1];
+                    var blue = currentLine[x + 2];
 
-                        currentLine[x] = lookupTable[red];
-                        currentLine[x + 1] = lookupTable[green];
-                        currentLine[x + 2] = lookupTable[blue];
-                    }
-                });
+                    currentLine[x] = lookupTable[red];
+                    currentLine[x + 1] = lookupTable[green];
+                    currentLine[x + 2] = lookupTable[blue];
+                }
+            });
 
-                image.UnlockBits(bitmapData);
-            }
+            image.UnlockBits(bitmapData);
         }
     }
 }

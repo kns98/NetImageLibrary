@@ -1,101 +1,82 @@
 ﻿#region License and copyright notice
+
 // Original code by Guillaume Leparmentier, licensed under The Code Project Open License (CPOL)
+
 #endregion
 
-namespace Kaliko.ImageLibrary.ColorSpace {
-    using System;
+namespace Kaliko.ImageLibrary.ColorSpace;
+
+/// <summary>
+///     Structure to define CIE L*a*b*.
+/// </summary>
+public struct CIELab
+{
+    /// <summary>
+    ///     Gets an empty CIELab structure.
+    /// </summary>
+    public static readonly CIELab Empty = new();
+
+    #region Fields
+
+    #endregion
+
+    #region Operators
+
+    public static bool operator ==(CIELab item1, CIELab item2)
+    {
+        return item1.L == item2.L
+               && item1.A == item2.A
+               && item1.B == item2.B;
+    }
+
+    public static bool operator !=(CIELab item1, CIELab item2)
+    {
+        return item1.L != item2.L
+               || item1.A != item2.A
+               || item1.B != item2.B;
+    }
+
+    #endregion
+
+    #region Accessors
 
     /// <summary>
-    /// Structure to define CIE L*a*b*.
+    ///     Gets or sets L component.
     /// </summary>
-    public struct CIELab {
-        /// <summary>
-        /// Gets an empty CIELab structure.
-        /// </summary>
-        public static readonly CIELab Empty = new CIELab();
+    public double L { get; set; }
 
-        #region Fields
-        private double l;
-        private double a;
-        private double b;
+    /// <summary>
+    ///     Gets or sets a component.
+    /// </summary>
+    public double A { get; set; }
 
-        #endregion
+    /// <summary>
+    ///     Gets or sets a component.
+    /// </summary>
+    public double B { get; set; }
 
-        #region Operators
-        public static bool operator ==(CIELab item1, CIELab item2) {
-            return (
-                       item1.L == item2.L
-                       && item1.A == item2.A
-                       && item1.B == item2.B
-                   );
-        }
+    #endregion
 
-        public static bool operator !=(CIELab item1, CIELab item2) {
-            return (
-                       item1.L != item2.L
-                       || item1.A != item2.A
-                       || item1.B != item2.B
-                   );
-        }
-
-        #endregion
-
-        #region Accessors
-        /// <summary>
-        /// Gets or sets L component.
-        /// </summary>
-        public double L {
-            get {
-                return this.l;
-            }
-            set {
-                this.l = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a component.
-        /// </summary>
-        public double A {
-            get {
-                return this.a;
-            }
-            set {
-                this.a = value;
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets a component.
-        /// </summary>
-        public double B {
-            get {
-                return this.b;
-            }
-            set {
-                this.b = value;
-            }
-        }
-
-        #endregion
-
-        public CIELab(double l, double a, double b) {
-            this.l = l;
-            this.a = a;
-            this.b = b;
-        }
-
-        #region Methods
-        public override bool Equals(Object obj) {
-            if (obj == null || GetType() != obj.GetType()) return false;
-
-            return (this == (CIELab)obj);
-        }
-
-        public override int GetHashCode() {
-            return L.GetHashCode() ^ a.GetHashCode() ^ b.GetHashCode();
-        }
-
-        #endregion
+    public CIELab(double l, double a, double b)
+    {
+        this.L = l;
+        this.A = a;
+        this.B = b;
     }
+
+    #region Methods
+
+    public override bool Equals(object obj)
+    {
+        if (obj == null || GetType() != obj.GetType()) return false;
+
+        return this == (CIELab)obj;
+    }
+
+    public override int GetHashCode()
+    {
+        return L.GetHashCode() ^ A.GetHashCode() ^ B.GetHashCode();
+    }
+
+    #endregion
 }

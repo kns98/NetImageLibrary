@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,39 +24,44 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.FastFilters {
-    using System.Drawing;
-    using System.Threading.Tasks;
-    using Kaliko.ImageLibrary;
-    using Kaliko.ImageLibrary.Filters;
+using System.Drawing;
+using Kaliko.ImageLibrary.Filters;
 
-    public class FastInvertFilter : IFilter {
-        public void Run(KalikoImage image) {
-            InvertImage(image);
-        }
+namespace Kaliko.ImageLibrary.FastFilters;
 
-        private static void InvertImage(KalikoImage image) {
-            unsafe {
-                var bitmapData = image.LockBits();
+public class FastInvertFilter : IFilter
+{
+    public void Run(KalikoImage image)
+    {
+        InvertImage(image);
+    }
 
-                var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat)/8;
-                var height = bitmapData.Height;
-                var widthInBytes = bitmapData.Width*bytesPerPixel;
-                var byteStart = (byte*)bitmapData.Scan0;
+    private static void InvertImage(KalikoImage image)
+    {
+        unsafe
+        {
+            var bitmapData = image.LockBits();
 
-                Parallel.For(0, height, y => {
-                    var currentLine = byteStart + (y*bitmapData.Stride);
-                    for (var x = 0; x < widthInBytes; x = x + bytesPerPixel) {
-                        currentLine[x] = (byte)(currentLine[x] ^ 255);
-                        currentLine[x + 1] = (byte)(currentLine[x + 1] ^ 255);
-                        currentLine[x + 2] = (byte)(currentLine[x + 2] ^ 255);
-                    }
-                });
+            var bytesPerPixel = Image.GetPixelFormatSize(bitmapData.PixelFormat) / 8;
+            var height = bitmapData.Height;
+            var widthInBytes = bitmapData.Width * bytesPerPixel;
+            var byteStart = (byte*)bitmapData.Scan0;
 
-                image.UnlockBits(bitmapData);
-            }
+            Parallel.For(0, height, y =>
+            {
+                var currentLine = byteStart + y * bitmapData.Stride;
+                for (var x = 0; x < widthInBytes; x = x + bytesPerPixel)
+                {
+                    currentLine[x] = (byte)(currentLine[x] ^ 255);
+                    currentLine[x + 1] = (byte)(currentLine[x + 1] ^ 255);
+                    currentLine[x + 2] = (byte)(currentLine[x + 2] ^ 255);
+                }
+            });
+
+            image.UnlockBits(bitmapData);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿#region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,75 +24,73 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Filters {
-    using System;
+namespace Kaliko.ImageLibrary.Filters;
+
+/// <summary>
+/// </summary>
+public class UnsharpMaskFilter : IFilter
+{
+    private readonly float _amount;
+    private readonly float _radius;
+    private readonly int _threshold;
 
     /// <summary>
-    /// 
     /// </summary>
-    public class UnsharpMaskFilter : IFilter {
-        readonly float _radius;
-        readonly float _amount;
-        private readonly int _threshold;
+    /// <param name="radius"></param>
+    /// <param name="amount"></param>
+    /// <param name="threshold"></param>
+    public UnsharpMaskFilter(float radius, float amount, int threshold)
+    {
+        _radius = radius * 3.14f;
+        _amount = amount;
+        _threshold = threshold;
+    }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="radius"></param>
-        /// <param name="amount"></param>
-        /// <param name="threshold"></param>
-        public UnsharpMaskFilter(float radius, float amount, int threshold) {
-            _radius = radius * 3.14f;
-            _amount = amount;
-            _threshold = threshold;
+    /// <summary>
+    /// </summary>
+    /// <param name="image"></param>
+    public void Run(KalikoImage image)
+    {
+        Sharpen(image, _amount, _radius, _threshold);
+    }
+
+    private static void Sharpen(KalikoImage image, float amount, float radius, int threshold)
+    {
+        var inPixels = image.IntArray;
+        var workPixels = new int[inPixels.Length];
+        var outPixels = new int[inPixels.Length];
+
+        if (radius > 0)
+        {
+            var kernel = GaussianBlurFilter.CreateKernel(radius);
+            GaussianBlurFilter.ConvolveAndTranspose(kernel, inPixels, workPixels, image.Width, image.Height, true, true,
+                false, ConvolveFilter.EdgeMode.Clamp);
+            GaussianBlurFilter.ConvolveAndTranspose(kernel, workPixels, outPixels, image.Height, image.Width, true,
+                false, true, ConvolveFilter.EdgeMode.Clamp);
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="image"></param>
-        public void Run(KalikoImage image) {
-            Sharpen(image, _amount, _radius, _threshold);
+        for (var index = 0; index < inPixels.Length; index++)
+        {
+            var rgb1 = inPixels[index];
+            var r1 = (rgb1 >> 16) & 0xff;
+            var g1 = (rgb1 >> 8) & 0xff;
+            var b1 = rgb1 & 0xff;
+
+            var rgb2 = outPixels[index];
+            var r2 = (rgb2 >> 16) & 0xff;
+            var g2 = (rgb2 >> 8) & 0xff;
+            var b2 = rgb2 & 0xff;
+
+            if (Math.Abs(r1 - r2) >= threshold) r1 = PixelUtils.Clamp((int)((amount + 1) * (r1 - r2) + r2));
+            if (Math.Abs(g1 - g2) >= threshold) g1 = PixelUtils.Clamp((int)((amount + 1) * (g1 - g2) + g2));
+            if (Math.Abs(b1 - b2) >= threshold) b1 = PixelUtils.Clamp((int)((amount + 1) * (b1 - b2) + b2));
+
+            inPixels[index] = (int)(rgb1 & 0xff000000) | (r1 << 16) | (g1 << 8) | b1;
         }
 
-        private static void Sharpen(KalikoImage image, float amount, float radius, int threshold) {
-            var inPixels = image.IntArray;
-            var workPixels = new int[inPixels.Length];
-            var outPixels = new int[inPixels.Length];
-
-            if (radius > 0) {
-                var kernel = GaussianBlurFilter.CreateKernel(radius);
-                GaussianBlurFilter.ConvolveAndTranspose(kernel, inPixels, workPixels, image.Width, image.Height, true, true, false, ConvolveFilter.EdgeMode.Clamp);
-                GaussianBlurFilter.ConvolveAndTranspose(kernel, workPixels, outPixels, image.Height, image.Width, true, false, true, ConvolveFilter.EdgeMode.Clamp);
-            }
-
-            for (int index = 0; index < inPixels.Length; index++) {
-                int rgb1 = inPixels[index];
-                int r1 = (rgb1 >> 16) & 0xff;
-                int g1 = (rgb1 >> 8) & 0xff;
-                int b1 = rgb1 & 0xff;
-
-                int rgb2 = outPixels[index];
-                int r2 = (rgb2 >> 16) & 0xff;
-                int g2 = (rgb2 >> 8) & 0xff;
-                int b2 = rgb2 & 0xff;
-
-                if (Math.Abs(r1 - r2) >= threshold) {
-                    r1 = PixelUtils.Clamp((int)((amount + 1)*(r1 - r2) + r2));
-                }
-                if (Math.Abs(g1 - g2) >= threshold) {
-                    g1 = PixelUtils.Clamp((int)((amount + 1)*(g1 - g2) + g2));
-                }
-                if (Math.Abs(b1 - b2) >= threshold) {
-                    b1 = PixelUtils.Clamp((int)((amount + 1)*(b1 - b2) + b2));
-                }
-
-                inPixels[index] = (int)(rgb1 & 0xff000000) | (r1 << 16) | (g1 << 8) | b1;
-            }
-
-            image.IntArray = inPixels;
-        }
+        image.IntArray = inPixels;
     }
 }

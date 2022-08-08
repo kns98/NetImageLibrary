@@ -1,4 +1,5 @@
 ﻿#region License information
+
 /*
  * Kaliko Image Library
  * 
@@ -23,70 +24,76 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary.Scaling {
-    using System.Drawing;
+using System.Drawing;
 
-    /// <summary>Abstract class used by scaling engines.</summary>
-    /// <seealso cref="CropScaling"></seealso>
-    /// <seealso cref="FitScaling"></seealso>
-    /// <seealso cref="PadScaling"></seealso>
-    public abstract class ScalingBase {
-        public int TargetWidth { get; set; }
-        
-        public int TargetHeight { get; set; }
+namespace Kaliko.ImageLibrary.Scaling;
 
-        internal abstract Size CalculateNewImageSize(Size originalSize);
+/// <summary>Abstract class used by scaling engines.</summary>
+/// <seealso cref="CropScaling"></seealso>
+/// <seealso cref="FitScaling"></seealso>
+/// <seealso cref="PadScaling"></seealso>
+public abstract class ScalingBase
+{
+    internal ScalingBase(int targetWidth, int targetHeight)
+    {
+        TargetWidth = targetWidth;
+        TargetHeight = targetHeight;
+    }
 
-        internal abstract KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize);
+    public int TargetWidth { get; set; }
 
-        internal ScalingBase(int targetWidth, int targetHeight) {
-            TargetWidth = targetWidth;
-            TargetHeight = targetHeight;
-        }
+    public int TargetHeight { get; set; }
 
-        internal double GetRatio(Size size) {
-            return GetRatio(size.Width, size.Height);
-        }
+    internal abstract Size CalculateNewImageSize(Size originalSize);
 
-        internal static double GetRatio(int width, int height) {
-            return (double)width / height;
-        }
+    internal abstract KalikoImage DrawResizedImage(KalikoImage sourceImage, Size calculatedSize, Size originalSize);
 
-        /// <summary>Core function that applies the scaling to the image.</summary>
-        /// <param name="sourceImage">Image to be scaled</param>
-        /// <returns>Scaled image</returns>
-        public KalikoImage Scale(KalikoImage sourceImage) {
-            var originalSize = new Size(sourceImage.Width, sourceImage.Height);
+    internal double GetRatio(Size size)
+    {
+        return GetRatio(size.Width, size.Height);
+    }
 
-            var calculatedSize = CalculateNewImageSize(originalSize);
+    internal static double GetRatio(int width, int height)
+    {
+        return (double)width / height;
+    }
 
-            return DrawResizedImage(sourceImage, calculatedSize, originalSize);
-        }
+    /// <summary>Core function that applies the scaling to the image.</summary>
+    /// <param name="sourceImage">Image to be scaled</param>
+    /// <returns>Scaled image</returns>
+    public KalikoImage Scale(KalikoImage sourceImage)
+    {
+        var originalSize = new Size(sourceImage.Width, sourceImage.Height);
 
-        /// <summary>Core function that applies the scaling to the image with the option to prevent upscaling</summary>
-        /// <param name="sourceImage"></param>
-        /// <param name="preventUpscaling"></param>
-        /// <returns>Scaled image</returns>
-        public KalikoImage Scale(KalikoImage sourceImage, bool preventUpscaling) {
-            if (preventUpscaling && IsTargetLargerThan(sourceImage)) {
-                return sourceImage;
-            }
+        var calculatedSize = CalculateNewImageSize(originalSize);
 
-            return Scale(sourceImage);
-        }
+        return DrawResizedImage(sourceImage, calculatedSize, originalSize);
+    }
 
-        /// <summary>
-        /// Controls if target size is larger than original size
-        /// </summary>
-        /// <param name="sourceImage"></param>
-        /// <returns></returns>
-        public bool IsTargetLargerThan(KalikoImage sourceImage) {
-            var originalSize = new Size(sourceImage.Width, sourceImage.Height);
-            var calculatedSize = CalculateNewImageSize(originalSize);
+    /// <summary>Core function that applies the scaling to the image with the option to prevent upscaling</summary>
+    /// <param name="sourceImage"></param>
+    /// <param name="preventUpscaling"></param>
+    /// <returns>Scaled image</returns>
+    public KalikoImage Scale(KalikoImage sourceImage, bool preventUpscaling)
+    {
+        if (preventUpscaling && IsTargetLargerThan(sourceImage)) return sourceImage;
 
-            return originalSize.Width <= calculatedSize.Width && originalSize.Height <= calculatedSize.Height;
-        }
+        return Scale(sourceImage);
+    }
+
+    /// <summary>
+    ///     Controls if target size is larger than original size
+    /// </summary>
+    /// <param name="sourceImage"></param>
+    /// <returns></returns>
+    public bool IsTargetLargerThan(KalikoImage sourceImage)
+    {
+        var originalSize = new Size(sourceImage.Width, sourceImage.Height);
+        var calculatedSize = CalculateNewImageSize(originalSize);
+
+        return originalSize.Width <= calculatedSize.Width && originalSize.Height <= calculatedSize.Height;
     }
 }

@@ -1,4 +1,5 @@
 #region License and copyright notice
+
 /*
  * Kaliko Image Library
  * 
@@ -23,45 +24,44 @@
  * THE SOFTWARE.
  * 
  */
+
 #endregion
 
-namespace Kaliko.ImageLibrary {
-    using System;
-    using System.Drawing;
-    using System.Globalization;
+using System.Drawing;
+using System.Globalization;
 
+namespace Kaliko.ImageLibrary;
+
+/// <summary>
+///     Class to handle color specific code.
+/// </summary>
+/// <exclude />
+/// <excludetoc />
+public class ColorHandler
+{
     /// <summary>
-    /// Class to handle color specific code.
+    ///     Parse a web color type of string (for example "#FF0000") into a System.Drawing.Color object.
     /// </summary>
-    /// <exclude/>
-    /// <excludetoc/>
-    public class ColorHandler {
-        /// <summary>
-        /// Parse a web color type of string (for example "#FF0000") into a System.Drawing.Color object.
-        /// </summary>
-        /// <param name="colorString">Color in string format (i e "#FFFFFF")</param>
-        /// <returns>Color</returns>
-        [Obsolete("StringToColor is deprecated, use ColorSpaceHelper.HexToColor instead.")]
-        public static Color StringToColor(string colorString) {
-            Color color;
-            
-            // Remove # if any
-            colorString = colorString.TrimStart('#');
+    /// <param name="colorString">Color in string format (i e "#FFFFFF")</param>
+    /// <returns>Color</returns>
+    [Obsolete("StringToColor is deprecated, use ColorSpaceHelper.HexToColor instead.")]
+    public static Color StringToColor(string colorString)
+    {
+        Color color;
 
-            // Parse the color string
-            int c = int.Parse(colorString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
+        // Remove # if any
+        colorString = colorString.TrimStart('#');
 
-            if(colorString.Length == 3) {
-                // Convert from RGB-form
-                color = Color.FromArgb(255, (c & 0xf00) >> 8, (c & 0x0f0) >> 4, (c & 0x00f));
-            }
-            else {
-                // Convert from RRGGBB-form
-                color = Color.FromArgb(255, (c & 0xff0000) >> 16, (c & 0x00ff00) >> 8, (c & 0x0000ff));
-            }
+        // Parse the color string
+        var c = int.Parse(colorString, NumberStyles.HexNumber, CultureInfo.InvariantCulture);
 
-            return color;
-        }
+        if (colorString.Length == 3)
+            // Convert from RGB-form
+            color = Color.FromArgb(255, (c & 0xf00) >> 8, (c & 0x0f0) >> 4, c & 0x00f);
+        else
+            // Convert from RRGGBB-form
+            color = Color.FromArgb(255, (c & 0xff0000) >> 16, (c & 0x00ff00) >> 8, c & 0x0000ff);
 
+        return color;
     }
 }
